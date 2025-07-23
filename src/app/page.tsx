@@ -1,118 +1,128 @@
-"use client"
+"use client";
 
 import React, { useEffect, useState } from "react";
-import Layout from "./layout";
-import Image from "next/image";
 
-interface Card {
+interface CardType {
   id: number;
-  image: string;
+  img: string;
   matched: boolean;
   flipped: boolean;
 }
 
-const generateCards = (): Card[] => {
-  const cardImages = Array.from({ length: 16 }, (_, i) => `/images/${i + 1}.png`);
-  const cards = cardImages.flatMap((img, i) => [
-    { id: i * 2, image: img, matched: false, flipped: false },
-    { id: i * 2 + 1, image: img, matched: false, flipped: false },
-  ]);
-  return shuffleArray(cards);
-};
+interface Score {
+  time: number;
+  attempts: number;
+}
 
-const shuffleArray = (array: Card[]) => {
+const TOTAL_PAIRS = 8; // 8 pares = 16 cartas
+
+const shuffleArray = (array: any[]) => {
   return [...array].sort(() => Math.random() - 0.5);
 };
 
 export default function MemoramaGame() {
-  const [cards, setCards] = useState<CardType[]>([])
-  const [firstCard, setFirstCard] = useState<CardType | null>(null)
-  const [secondCard, setSecondCard] = useState<CardType | null>(null)
-  const [disabled, setDisabled] = useState(false)
-  const [attempts, setAttempts] = useState(0)
-  const [timer, setTimer] = useState(0)
-  const [gameOver, setGameOver] = useState(false)
-  const [ranking, setRanking] = useState<Score[]>([])
+  const [cards, setCards] = useState<CardType[]>([]);
+  const [firstCard, setFirstCard] = useState<CardType | null>(null);
+  const [secondCard, setSecondCard] = useState<CardType | null>(null);
+  const [disabled, setDisabled] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [timer, setTimer] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [ranking, setRanking] = useState<Score[]>([]);
 
   useEffect(() => {
-    generateCards()
-    const interval = setInterval(() => setTimer((t) => t + 1), 1000)
-    return () => clearInterval(interval)
-  }, [])
+    generateCards();
+    const interval = setInterval(() => setTimer((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
-    const stored = localStorage.getItem('ranking')
-    if (stored) setRanking(JSON.parse(stored))
-  }, [])
+    const stored = localStorage.getItem("ranking");
+    if (stored) setRanking(JSON.parse(stored));
+  }, []);
 
   useEffect(() => {
     if (cards.length > 0 && cards.every((c) => c.matched)) {
-      setGameOver(true)
-      saveScore()
+      setGameOver(true);
+      saveScore();
     }
-  }, [cards])
+  }, [cards]);
 
   const generateCards = () => {
-    const imgs = Array.from({ length: TOTAL_PAIRS }, (_, i) => `${i + 1}.png`)
-    const shuffled = [...imgs, ...imgs]
-      .map((img, idx) => ({ id: idx, img, flipped: false, matched: false }))
-      .sort(() => Math.random() - 0.5)
-
-    setCards(shuffled)
-    setFirstCard(null)
-    setSecondCard(null)
-    setAttempts(0)
-    setTimer(0)
-    setGameOver(false)
-  }
+    // Crea un arreglo con nombres de imágenes "1.png" hasta "8.png"
+    const imgs = Array.from({ length: TOTAL_PAIRS }, (_, i) => `${i + 1}.png`);
+    // Duplicamos y creamos las cartas con ids únicos
+    const duplicatedCards = [...imgs, ...imgs].map((img, idx) => ({
+      id: idx,
+      img,
+      flipped: false,
+      matched: false,
+    }));
+    const shuffled = shuffleArray(duplicatedCards);
+    setCards(shuffled);
+    setFirstCard(null);
+    setSecondCard(null);
+    setAttempts(0);
+    setTimer(0);
+    setGameOver(false);
+    setDisabled(false);
+  };
 
   const handleCardClick = (card: CardType) => {
-    if (disabled || card.flipped || card.matched) return
+    if (disabled || card.flipped || card.matched) return;
 
-    const flippedCard = { ...card, flipped: true }
-    setCards((prev) => prev.map((c) => (c.id === card.id ? flippedCard : c)))
+    const flippedCard = { ...card, flipped: true };
+    setCards((prev) =>
+      prev.map((c) => (c.id === card.id ? flippedCard : c))
+    );
 
     if (!firstCard) {
-      setFirstCard(flippedCard)
+      setFirstCard(flippedCard);
     } else if (!secondCard) {
-      setSecondCard(flippedCard)
-      setDisabled(true)
+      setSecondCard(flippedCard);
+      setDisabled(true);
 
       if (firstCard.img === flippedCard.img) {
         setCards((prev) =>
-          prev.map((c) => (c.img === flippedCard.img ? { ...c, matched: true } : c))
-        )
-        resetTurn()
+          prev.map((c) =>
+            c.img === flippedCard.img ? { ...c, matched: true } : c
+          )
+        );
+        resetTurn();
       } else {
         setTimeout(() => {
           setCards((prev) =>
             prev.map((c) =>
-              c.id === firstCard.id || c.id === flippedCard.id ? { ...c, flipped: false } : c
+              c.id === firstCard.id || c.id === flippedCard.id
+                ? { ...c, flipped: false }
+                : c
             )
-          )
-          resetTurn()
-        }, 1000)
+          );
+          resetTurn();
+        }, 1000);
       }
 
-      setAttempts((a) => a + 1)
+      setAttempts((a) => a + 1);
     }
-  }
+  };
 
   const resetTurn = () => {
-    setFirstCard(null)
-    setSecondCard(null)
-    setDisabled(false)
-  }
+    setFirstCard(null);
+    setSecondCard(null);
+    setDisabled(false);
+  };
 
   const saveScore = () => {
-    const newScore = { time: timer, attempts }
+    const newScore: Score = { time: timer, attempts };
     const updatedRanking = [...ranking, newScore]
-      .sort((a, b) => (a.time === b.time ? a.attempts - b.attempts : a.time - b.time))
-      .slice(0, 5)
+      .sort((a, b) =>
+        a.time === b.time ? a.attempts - b.attempts : a.time - b.time
+      )
+      .slice(0, 5);
 
-    setRanking(updatedRanking)
-    localStorage.setItem('ranking', JSON.stringify(updatedRanking))
-  }
+    setRanking(updatedRanking);
+    localStorage.setItem("ranking", JSON.stringify(updatedRanking));
+  };
 
   return (
     <>
@@ -129,7 +139,11 @@ export default function MemoramaGame() {
             className="cursor-pointer border rounded-lg overflow-hidden shadow-md bg-white"
           >
             <img
-              src={card.flipped || card.matched ? `/images/${card.img}` : '/images/t800.png'}
+              src={
+                card.flipped || card.matched
+                  ? `/images/${card.img}`
+                  : "/images/t800.png"
+              }
               alt="card"
               className="w-full h-28 object-cover"
               draggable={false}
@@ -170,5 +184,5 @@ export default function MemoramaGame() {
         </ol>
       </div>
     </>
-  )
+  );
 }
