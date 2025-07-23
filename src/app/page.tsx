@@ -1,14 +1,8 @@
-// src/app/page.tsx
-
-"use client";
+"use client"
 
 import React, { useEffect, useState } from "react";
+import Layout from "./layout";
 import Image from "next/image";
-
-// Resto de tu componente...
-
-
-
 
 interface Card {
   id: number;
@@ -30,129 +24,151 @@ const shuffleArray = (array: Card[]) => {
   return [...array].sort(() => Math.random() - 0.5);
 };
 
-export default function Home() {
-  const [cards, setCards] = useState<Card[]>([]);
-  const [firstCard, setFirstCard] = useState<Card | null>(null);
-  const [secondCard, setSecondCard] = useState<Card | null>(null);
-  const [disabled, setDisabled] = useState(false);
-  const [tries, setTries] = useState(0);
-  const [timer, setTimer] = useState(0);
-  const [isRunning, setIsRunning] = useState(true);
-  const [ranking, setRanking] = useState<{ time: number; tries: number }[]>([]);
+export default function MemoramaGame() {
+  const [cards, setCards] = useState<CardType[]>([])
+  const [firstCard, setFirstCard] = useState<CardType | null>(null)
+  const [secondCard, setSecondCard] = useState<CardType | null>(null)
+  const [disabled, setDisabled] = useState(false)
+  const [attempts, setAttempts] = useState(0)
+  const [timer, setTimer] = useState(0)
+  const [gameOver, setGameOver] = useState(false)
+  const [ranking, setRanking] = useState<Score[]>([])
 
   useEffect(() => {
-    setCards(generateCards());
-  }, []);
+    generateCards()
+    const interval = setInterval(() => setTimer((t) => t + 1), 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
-    if (isRunning) {
-      const interval = setInterval(() => setTimer((t) => t + 1), 1000);
-      return () => clearInterval(interval);
+    const stored = localStorage.getItem('ranking')
+    if (stored) setRanking(JSON.parse(stored))
+  }, [])
+
+  useEffect(() => {
+    if (cards.length > 0 && cards.every((c) => c.matched)) {
+      setGameOver(true)
+      saveScore()
     }
-  }, [isRunning]);
+  }, [cards])
 
-  useEffect(() => {
-    if (firstCard && secondCard) {
-      setDisabled(true);
-      if (firstCard.image === secondCard.image) {
+  const generateCards = () => {
+    const imgs = Array.from({ length: TOTAL_PAIRS }, (_, i) => `${i + 1}.png`)
+    const shuffled = [...imgs, ...imgs]
+      .map((img, idx) => ({ id: idx, img, flipped: false, matched: false }))
+      .sort(() => Math.random() - 0.5)
+
+    setCards(shuffled)
+    setFirstCard(null)
+    setSecondCard(null)
+    setAttempts(0)
+    setTimer(0)
+    setGameOver(false)
+  }
+
+  const handleCardClick = (card: CardType) => {
+    if (disabled || card.flipped || card.matched) return
+
+    const flippedCard = { ...card, flipped: true }
+    setCards((prev) => prev.map((c) => (c.id === card.id ? flippedCard : c)))
+
+    if (!firstCard) {
+      setFirstCard(flippedCard)
+    } else if (!secondCard) {
+      setSecondCard(flippedCard)
+      setDisabled(true)
+
+      if (firstCard.img === flippedCard.img) {
         setCards((prev) =>
-          prev.map((card) =>
-            card.image === firstCard.image
-              ? { ...card, matched: true }
-              : card
-          )
-        );
-        resetTurn();
+          prev.map((c) => (c.img === flippedCard.img ? { ...c, matched: true } : c))
+        )
+        resetTurn()
       } else {
         setTimeout(() => {
           setCards((prev) =>
-            prev.map((card) =>
-              card.id === firstCard.id || card.id === secondCard.id
-                ? { ...card, flipped: false }
-                : card
+            prev.map((c) =>
+              c.id === firstCard.id || c.id === flippedCard.id ? { ...c, flipped: false } : c
             )
-          );
-          resetTurn();
-        }, 1000);
-        setTries((prev) => prev + 1);
+          )
+          resetTurn()
+        }, 1000)
       }
-    }
-  }, [secondCard]);
 
-  useEffect(() => {
-    if (cards.length && cards.every((card) => card.matched)) {
-      setIsRunning(false);
-      const newRanking = [...ranking, { time: timer, tries }];
-      newRanking.sort((a, b) => a.time - b.time || a.tries - b.tries);
-      setRanking(newRanking);
-      localStorage.setItem("ranking", JSON.stringify(newRanking));
+      setAttempts((a) => a + 1)
     }
-  }, [cards]);
-
-  useEffect(() => {
-    const savedRanking = localStorage.getItem("ranking");
-    if (savedRanking) {
-      setRanking(JSON.parse(savedRanking));
-    }
-  }, []);
-
-  const handleClick = (card: Card) => {
-    if (!disabled && !card.flipped && !card.matched) {
-      setCards((prev) =>
-        prev.map((c) => (c.id === card.id ? { ...c, flipped: true } : c))
-      );
-      if (!firstCard) {
-        setFirstCard(card);
-      } else if (!secondCard) {
-        setSecondCard(card);
-      }
-    }
-  };
+  }
 
   const resetTurn = () => {
-    setFirstCard(null);
-    setSecondCard(null);
-    setDisabled(false);
-  };
+    setFirstCard(null)
+    setSecondCard(null)
+    setDisabled(false)
+  }
+
+  const saveScore = () => {
+    const newScore = { time: timer, attempts }
+    const updatedRanking = [...ranking, newScore]
+      .sort((a, b) => (a.time === b.time ? a.attempts - b.attempts : a.time - b.time))
+      .slice(0, 5)
+
+    setRanking(updatedRanking)
+    localStorage.setItem('ranking', JSON.stringify(updatedRanking))
+  }
 
   return (
-  <div className="p-4 max-w-6xl mx-auto">
-    <h1 className="text-4xl font-bold text-center text-purple-700 mb-6">Juego de Memorama</h1>
+    <>
+      <div className="mb-4 text-lg flex justify-center gap-6">
+        <div>⏱️ Tiempo: {timer}s</div>
+        <div>❌ Intentos: {attempts}</div>
+      </div>
 
-    <div className="flex justify-between items-center mb-4">
-      <p>⏱️ Tiempo: {timer}s</p>
-      <p>❌ Intentos fallidos: {tries}</p>
-    </div>
-
-    <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
-      {cards.map((card) => (
-        <div
-          key={card.id}
-          className="cursor-pointer border rounded shadow"
-          onClick={() => handleClick(card)}
-        >
-          <Image
-            src={card.flipped || card.matched ? card.image : "/images/t800.png"}
-            alt="card"
-            width={100}
-            height={100}
-          />
-        </div>
-      ))}
-    </div>
-
-    <div className="mt-8">
-      <h2 className="text-2xl font-semibold mb-4">🏆 Ranking</h2>
-      <ol className="list-decimal pl-5">
-        {ranking.slice(0, 5).map((entry, idx) => (
-          <li key={idx}>
-            Tiempo: {entry.time}s, Intentos: {entry.tries}
-          </li>
+      <div className="grid grid-cols-4 gap-4 max-w-xl mx-auto">
+        {cards.map((card) => (
+          <div
+            key={card.id}
+            onClick={() => handleCardClick(card)}
+            className="cursor-pointer border rounded-lg overflow-hidden shadow-md bg-white"
+          >
+            <img
+              src={card.flipped || card.matched ? `/images/${card.img}` : '/images/t800.png'}
+              alt="card"
+              className="w-full h-28 object-cover"
+              draggable={false}
+            />
+          </div>
         ))}
-      </ol>
-    </div>
-  </div>
-);
+      </div>
 
+      {gameOver && (
+        <div className="mt-8 text-green-600 font-semibold text-xl text-center">
+          🎉 ¡Juego completado! Resultado guardado.
+        </div>
+      )}
 
+      <div className="flex justify-center mt-6">
+        <button
+          onClick={generateCards}
+          className="bg-purple-700 hover:bg-purple-800 text-white px-6 py-2 rounded-xl"
+        >
+          🔁 Reiniciar Juego
+        </button>
+      </div>
+
+      <div className="mt-10 max-w-md mx-auto text-left">
+        <h2 className="text-2xl font-bold mb-4">🏆 Ranking</h2>
+        <ol className="space-y-2">
+          {ranking.map((score, idx) => (
+            <li
+              key={idx}
+              className="bg-white p-3 rounded shadow flex justify-between text-sm text-gray-700"
+            >
+              <span>#{idx + 1}</span>
+              <span>
+                {score.time}s | {score.attempts} intentos
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </>
+  )
 }
