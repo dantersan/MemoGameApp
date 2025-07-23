@@ -1,8 +1,14 @@
-"use client"
+// src/app/page.tsx
+
+"use client";
 
 import React, { useEffect, useState } from "react";
-import Layout from "./layout";
 import Image from "next/image";
+
+// Resto de tu componente...
+
+
+
 
 interface Card {
   id: number;
@@ -110,43 +116,42 @@ export default function Home() {
   };
 
   return (
-    <Layout>
-      <div className="p-4 max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-purple-700 mb-6">Juego de Memorama</h1>
+  <div className="p-4 max-w-6xl mx-auto">
+    <h1 className="text-4xl font-bold text-center text-purple-700 mb-6">Juego de Memorama</h1>
 
-        <div className="flex justify-between items-center mb-4">
-          <p>⏱️ Tiempo: {timer}s</p>
-          <p>❌ Intentos fallidos: {tries}</p>
-        </div>
+    <div className="flex justify-between items-center mb-4">
+      <p>⏱️ Tiempo: {timer}s</p>
+      <p>❌ Intentos fallidos: {tries}</p>
+    </div>
 
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
-          {cards.map((card) => (
-            <div
-              key={card.id}
-              className="cursor-pointer border rounded shadow"
-              onClick={() => handleClick(card)}
-            >
-              <Image
-                src={card.flipped || card.matched ? card.image : "/images/t800.png"}
-                alt="card"
-                width={100}
-                height={100}
-              />
-            </div>
-          ))}
+    <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
+      {cards.map((card) => (
+        <div
+          key={card.id}
+          className="cursor-pointer border rounded shadow"
+          onClick={() => handleClick(card)}
+        >
+          <Image
+            src={card.flipped || card.matched ? card.image : "/images/t800.png"}
+            alt="card"
+            width={100}
+            height={100}
+          />
         </div>
+      ))}
+    </div>
 
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-4">🏆 Ranking</h2>
-          <ol className="list-decimal pl-5">
-            {ranking.slice(0, 5).map((entry, idx) => (
-              <li key={idx}>
-                Tiempo: {entry.time}s, Intentos: {entry.tries}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    </Layout>
-  );
+    <div className="mt-8">
+      <h2 className="text-2xl font-semibold mb-4">🏆 Ranking</h2>
+      <ol className="list-decimal pl-5">
+        {ranking.slice(0, 5).map((entry, idx) => (
+          <li key={idx}>
+            Tiempo: {entry.time}s, Intentos: {entry.tries}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+);
+
 }
