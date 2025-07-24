@@ -14,7 +14,7 @@ interface Score {
   attempts: number;
 }
 
-const TOTAL_PAIRS = 8; // 8 pares = 16 cartas
+const TOTAL_PAIRS = 8;
 
 const shuffleArray = (array: any[]) => {
   return [...array].sort(() => Math.random() - 0.5);
@@ -49,15 +49,14 @@ export default function MemoramaGame() {
   }, [cards]);
 
   const generateCards = () => {
-    // Crea un arreglo con nombres de imágenes "1.png" hasta "8.png"
     const imgs = Array.from({ length: TOTAL_PAIRS }, (_, i) => `${i + 1}.png`);
-    // Duplicamos y creamos las cartas con ids únicos
-    const duplicatedCards = [...imgs, ...imgs].map((img, idx) => ({
-      id: idx,
+    const duplicatedCards = [...imgs, ...imgs].map((img, index) => ({
+      id: index,
       img,
-      flipped: false,
       matched: false,
+      flipped: false,
     }));
+
     const shuffled = shuffleArray(duplicatedCards);
     setCards(shuffled);
     setFirstCard(null);
@@ -71,29 +70,31 @@ export default function MemoramaGame() {
   const handleCardClick = (card: CardType) => {
     if (disabled || card.flipped || card.matched) return;
 
-    const flippedCard = { ...card, flipped: true };
-    setCards((prev) =>
-      prev.map((c) => (c.id === card.id ? flippedCard : c))
-    );
+    const flipped = { ...card, flipped: true };
+    const newCards = cards.map((c) => (c.id === card.id ? flipped : c));
+    setCards(newCards);
 
     if (!firstCard) {
-      setFirstCard(flippedCard);
+      setFirstCard(flipped);
     } else if (!secondCard) {
-      setSecondCard(flippedCard);
+      setSecondCard(flipped);
       setDisabled(true);
+      setAttempts((a) => a + 1);
 
-      if (firstCard.img === flippedCard.img) {
+      if (firstCard.img === flipped.img) {
         setCards((prev) =>
           prev.map((c) =>
-            c.img === flippedCard.img ? { ...c, matched: true } : c
+            c.img === flipped.img ? { ...c, matched: true } : c
           )
         );
-        resetTurn();
+        setTimeout(() => {
+          resetTurn();
+        }, 500);
       } else {
         setTimeout(() => {
           setCards((prev) =>
             prev.map((c) =>
-              c.id === firstCard.id || c.id === flippedCard.id
+              c.id === firstCard.id || c.id === flipped.id
                 ? { ...c, flipped: false }
                 : c
             )
@@ -101,8 +102,6 @@ export default function MemoramaGame() {
           resetTurn();
         }, 1000);
       }
-
-      setAttempts((a) => a + 1);
     }
   };
 
@@ -113,7 +112,7 @@ export default function MemoramaGame() {
   };
 
   const saveScore = () => {
-    const newScore: Score = { time: timer, attempts };
+    const newScore = { time: timer, attempts };
     const updatedRanking = [...ranking, newScore]
       .sort((a, b) =>
         a.time === b.time ? a.attempts - b.attempts : a.time - b.time
