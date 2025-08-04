@@ -207,14 +207,22 @@ export default function MemoramaGame() {
         </div>
       )}
 
-      <div className="flex justify-center mt-6">
-        <button
-          onClick={generateCards}
-          className="bg-purple-700 hover:bg-purple-800 text-white px-6 py-2 rounded-xl"
-        >
-          🔁 Reiniciar Juego
-        </button>
-      </div>
+<div className="flex justify-center mt-6 gap-4">
+  <button
+    onClick={generateCards}
+    className="bg-purple-700 hover:bg-purple-800 text-white px-6 py-2 rounded-xl"
+  >
+    🔁 Reiniciar Juego
+  </button>
+
+  <a
+    href="/acerca-de"
+    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl inline-block"
+  >
+    ℹ️ Acerca de
+  </a>
+</div>
+
 
       <div className="mt-10 max-w-md mx-auto text-left">
         <h2 className="text-2xl font-bold mb-4">🏆 Ranking</h2>
