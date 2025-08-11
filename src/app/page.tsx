@@ -112,7 +112,7 @@ export default function MemoramaGame() {
       setMusicStarted(false);
     }
 
-    setGameStarted(false); // Reaparecer overlay
+    setGameStarted(false); // Mostrar overlay
   };
 
   const handleCardClick = (card: CardType) => {
@@ -171,27 +171,7 @@ export default function MemoramaGame() {
   };
 
   return (
-    <div className="relative max-w-xl mx-auto">
-      {!gameStarted && (
-  <div className="absolute inset-0 bg-black z-20 flex flex-col items-center justify-center p-8 max-w-xl mx-auto rounded-lg text-white text-center">
-    <h2 className="text-3xl font-bold mb-4">Instrucciones del Memorama</h2>
-    <p className="mb-6 max-w-md">
-      Encuentra todas las parejas de cartas iguales.<br/>
-      Haz clic en dos cartas para descubrirlas.<br/>
-      Si coinciden, quedarán destapadas.<br/>
-      Si no coinciden, se volverán a tapar.<br/>
-      Completa el juego en el menor tiempo y con menos intentos posible.<br/>
-      Ingresa tu nombre y ¡buena suerte!
-    </p>
-    <button
-      onClick={startGame}
-      className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-2xl text-2xl font-bold shadow-lg"
-    >
-      Empezar
-    </button>
-  </div>
-)}
-
+    <div className="max-w-xl mx-auto px-4">
       <h1 className="text-4xl font-bold text-center mb-6">Memorama</h1>
 
       <div className="mb-4 text-center">
@@ -201,7 +181,7 @@ export default function MemoramaGame() {
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
           className="border rounded px-3 py-2 w-full max-w-xs mx-auto"
-          disabled={gameStarted}
+          disabled={!gameStarted}
         />
       </div>
 
@@ -210,25 +190,57 @@ export default function MemoramaGame() {
         <div>Intentos: {attempts}</div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 rounded-lg overflow-hidden shadow-md bg-white">
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            onClick={() => handleCardClick(card)}
-            className="cursor-pointer border rounded-lg overflow-hidden"
-          >
-            <img
-              src={
-                card.flipped || card.matched
-                  ? `/images/${card.img}`
-                  : "/images/t800.png"
-              }
-              alt="card"
-              className="w-full h-28 object-cover"
-              draggable={false}
-            />
+      {/* Contenedor relativo que envuelve cartas + overlay */}
+      <div className="relative">
+        {/* Cartas */}
+        <div className="grid grid-cols-4 gap-4 rounded-lg overflow-hidden shadow-md bg-white">
+          {cards.map((card) => (
+            <div
+              key={card.id}
+              onClick={() => handleCardClick(card)}
+              className={`cursor-pointer border rounded-lg overflow-hidden ${
+                disabled ? "pointer-events-none" : ""
+              }`}
+            >
+              <img
+                src={
+                  card.flipped || card.matched
+                    ? `/images/${card.img}`
+                    : "/images/t800.png"
+                }
+                alt="card"
+                className="w-full h-28 object-cover"
+                draggable={false}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Overlay solo sobre las cartas */}
+        {!gameStarted && (
+          <div className="absolute inset-0 bg-black z-20 flex flex-col items-center justify-center p-8 rounded-lg text-white text-center">
+            <h2 className="text-3xl font-bold mb-4">Instrucciones del Memorama</h2>
+            <p className="mb-6 max-w-md">
+              Encuentra todas las parejas de cartas iguales.
+              <br />
+              Haz clic en dos cartas para descubrirlas.
+              <br />
+              Si coinciden, quedarán destapadas.
+              <br />
+              Si no coinciden, se volverán a tapar.
+              <br />
+              Completa el juego en el menor tiempo y con menos intentos posible.
+              <br />
+              Ingresa tu nombre y ¡buena suerte!
+            </p>
+            <button
+              onClick={startGame}
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-2xl text-2xl font-bold shadow-lg"
+            >
+              Empezar
+            </button>
           </div>
-        ))}
+        )}
       </div>
 
       {gameOver && (
@@ -238,8 +250,6 @@ export default function MemoramaGame() {
       )}
 
       <div className="flex justify-center mt-6 gap-4">
-        {/* Botón "Tapar Cartas" eliminado */}
-
         <button
           onClick={generateCards}
           className="bg-purple-700 hover:bg-purple-800 text-white px-6 py-2 rounded-xl"
