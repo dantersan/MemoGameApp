@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+/* global.css */
+
+body {
+  background-color: #3a1c2b;
+  font-family: 'Inter', sans-serif; /* o la fuente que uses */
+  color: #fff; /* texto blanco por defecto */
+  min-height: 100vh;
+}
