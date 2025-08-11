@@ -38,7 +38,7 @@ const page = () => {
         </div>
 
         <div>
-          <h2 className="text-2xl font-semibold mb-4 text-[#d4a5b2] border-b border-[#5e2b3c] pb-2">Colaboradores</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-[#d4a5b2] border-b border-[#5e2b3c] pb-2">Diseñadores</h2>
           <ul className="space-y-3 text-lg">
             {colaboradores.map((nombre, index) => (
               <li
