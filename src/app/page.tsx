@@ -47,6 +47,7 @@ export default function MemoramaGame() {
   const [musicStarted, setMusicStarted] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [playerName, setPlayerName] = useState("");
+  const [showRanking, setShowRanking] = useState(false);
 
   useEffect(() => {
     generateCards();
@@ -101,7 +102,6 @@ export default function MemoramaGame() {
     setGameOver(false);
     setDisabled(false);
 
-    // Pausar y resetear música al reiniciar
     if (victoria && !victoria.paused) {
       victoria.pause();
       victoria.currentTime = 0;
@@ -112,7 +112,7 @@ export default function MemoramaGame() {
       setMusicStarted(false);
     }
 
-    setGameStarted(false); // Mostrar overlay
+    setGameStarted(false);
   };
 
   const handleCardClick = (card: CardType) => {
@@ -181,18 +181,17 @@ export default function MemoramaGame() {
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
           className="border rounded px-3 py-2 w-full max-w-xs mx-auto"
-          disabled={!gameStarted}
         />
       </div>
 
-      <div className="mb-4 text-lg flex justify-center gap-6">
+      {/* Barra superior solo con tiempo e intentos */}
+      <div className="mb-4 flex justify-center items-center gap-6 text-lg">
         <div>Tiempo: {timer}s</div>
         <div>Intentos: {attempts}</div>
       </div>
 
-      {/* Contenedor relativo que envuelve cartas + overlay */}
+      {/* Contenedor cartas */}
       <div className="relative">
-        {/* Cartas */}
         <div className="grid grid-cols-4 gap-4 rounded-lg overflow-hidden shadow-md bg-white">
           {cards.map((card) => (
             <div
@@ -203,11 +202,7 @@ export default function MemoramaGame() {
               }`}
             >
               <img
-                src={
-                  card.flipped || card.matched
-                    ? `/images/${card.img}`
-                    : "/images/t800.png"
-                }
+                src={card.flipped || card.matched ? `/images/${card.img}` : "/images/t800.png"}
                 alt="card"
                 className="w-full h-28 object-cover"
                 draggable={false}
@@ -216,7 +211,6 @@ export default function MemoramaGame() {
           ))}
         </div>
 
-        {/* Overlay solo sobre las cartas */}
         {!gameStarted && (
           <div className="absolute inset-0 bg-black z-20 flex flex-col items-center justify-center p-8 rounded-lg text-white text-center">
             <h2 className="text-3xl font-bold mb-4">Instrucciones del Memorama</h2>
@@ -249,12 +243,13 @@ export default function MemoramaGame() {
         </div>
       )}
 
+      {/* Botones debajo de las cartas */}
       <div className="flex justify-center mt-6 gap-4">
         <button
           onClick={generateCards}
           className="bg-purple-700 hover:bg-purple-800 text-white px-6 py-2 rounded-xl"
         >
-          Reiniciar Juego
+          Reiniciar
         </button>
 
         <a
@@ -263,26 +258,40 @@ export default function MemoramaGame() {
         >
           Acerca de
         </a>
+
+        <button
+          onClick={() => setShowRanking(true)}
+          className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-6 py-2 rounded-xl"
+        >
+          Ranking
+        </button>
       </div>
 
-      <div className="mt-10 max-w-md mx-auto text-left">
-        <h2 className="text-2xl font-bold mb-4">Ranking</h2>
-        <ol className="space-y-2">
-          {ranking.map((score, idx) => (
-            <li
-              key={idx}
-              className="bg-white p-3 rounded shadow flex justify-between text-sm text-gray-700"
+      {/* Modal Ranking */}
+      {showRanking && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-white text-black p-6 rounded-lg shadow-lg w-80 relative max-h-[70vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4 text-center">Ranking</h2>
+            <ol className="space-y-2">
+              {ranking.map((score, idx) => (
+                <li
+                  key={idx}
+                  className="bg-gray-100 p-2 rounded flex justify-between text-sm"
+                >
+                  <span>#{idx + 1} {score.name}</span>
+                  <span>{score.time}s | {score.attempts} intentos</span>
+                </li>
+              ))}
+            </ol>
+            <button
+              onClick={() => setShowRanking(false)}
+              className="absolute top-2 right-2 text-gray-600 hover:text-black font-bold text-xl"
             >
-              <span>
-                #{idx + 1} {score.name}
-              </span>
-              <span>
-                {score.time}s | {score.attempts} intentos
-              </span>
-            </li>
-          ))}
-        </ol>
-      </div>
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
