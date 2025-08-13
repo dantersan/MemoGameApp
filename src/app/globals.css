@@ -3,8 +3,16 @@
 /* global.css */
 
 body {
-  background-color: #3a1c2b;
-  font-family: 'Inter', sans-serif; /* o la fuente que uses */
-  color: #fff; /* texto blanco por defecto */
+  font-family: 'Inter', sans-serif;
+  color: #fff;
   min-height: 100vh;
+  background: linear-gradient(-45deg, #3a1c2b, #5a2f49, #c44d8c, #8e3b68);
+  background-size: 400% 400%;
+  animation: gradient 12s ease infinite;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
